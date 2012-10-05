@@ -18,4 +18,4 @@ Edit unpack_cc_demo.cmd or unpack_cc_retail.cmd, set your path to game, run.
 manual unpack:
 --------------
 
-    lua64\lua.exe unpack_cc.lua path_to_game output_dir
+    lua64\lua.exe unpack_cc.lua path_to_archive output_dir
