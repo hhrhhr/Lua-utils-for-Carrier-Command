@@ -10,15 +10,11 @@ function BinaryReader:open(fullpath)
 end
 
 function BinaryReader:close()
-    if self.f_handle then
-        self.f_handle:close()
-    end
+    self.f_handle:close()
 end
 
 function BinaryReader:pos()
-    if self.f_handle then
-       return self.f_handle:seek()
-    end
+   return self.f_handle:seek()
 end
 
 function BinaryReader:size()
@@ -26,25 +22,41 @@ function BinaryReader:size()
 end
 
 function BinaryReader:seek(pos)
-    if self.f_handle then
-       return self.f_handle:seek("set", pos)
-    end
+    return self.f_handle:seek("set", pos)
 end
 
 function BinaryReader:int8()  -- byte
     local i8 = 0
-    i8 = i8 + string.byte(self.f_handle:read(1)) * 2^0
+    i8 = i8 + string.byte(self.f_handle:read(1))
     return i8
 end
 
-function BinaryReader:int16(endian_big)  -- word
+function BinaryReader:uint8()  -- unsigned byte
+    local i8 = 0
+    i8 = self:int8()
+    if i8 > 127 then
+        i8 = i8 - 256
+    end
+    return i8
+end
+
+function BinaryReader:int16(endian_big)  -- short
     local i16 = 0
     if endian_big then
-        i16 = i16 + string.byte(self.f_handle:read(1)) * 2^8
-        i16 = i16 + string.byte(self.f_handle:read(1)) * 2^0
+        i16 = i16 + self:int8() * 2^8
+        i16 = i16 + self:int8() * 2^0
     else
-        i16 = i16 + string.byte(self.f_handle:read(1)) * 2^0
-        i16 = i16 + string.byte(self.f_handle:read(1)) * 2^8
+        i16 = i16 + self:int8() * 2^0
+        i16 = i16 + self:int8() * 2^8
+    end
+    return i16
+end
+
+function BinaryReader:uint16(endian_big)  -- unsigned short
+    local i16 = 0
+    i16 = self:int16(endian_big)
+    if i16 > 32767 then
+        i16 = i16 - 65536
     end
     return i16
 end
@@ -52,15 +64,24 @@ end
 function BinaryReader:int32(endian_big)  -- integer
     local i32 = 0
     if endian_big then
-        i32 = i32 + string.byte(self.f_handle:read(1)) * 2^24
-        i32 = i32 + string.byte(self.f_handle:read(1)) * 2^16
-        i32 = i32 + string.byte(self.f_handle:read(1)) * 2^8
-        i32 = i32 + string.byte(self.f_handle:read(1)) * 2^0
+        i32 = i32 + self:int8() * 2^24
+        i32 = i32 + self:int8() * 2^16
+        i32 = i32 + self:int8() * 2^8
+        i32 = i32 + self:int8() * 2^0
     else
-        i32 = i32 + string.byte(self.f_handle:read(1)) * 2^0
-        i32 = i32 + string.byte(self.f_handle:read(1)) * 2^8
-        i32 = i32 + string.byte(self.f_handle:read(1)) * 2^16
-        i32 = i32 + string.byte(self.f_handle:read(1)) * 2^24
+        i32 = i32 + self:int8() * 2^0
+        i32 = i32 + self:int8() * 2^8
+        i32 = i32 + self:int8() * 2^16
+        i32 = i32 + self:int8() * 2^24
+    end
+    return i32
+end
+
+function BinaryReader:uint32(endian_big)  -- unsigned integer
+    local i32 = 0
+    i32 = self:int32(endian_big)
+    if i32 > 2147483647 then
+        i32 = i32 - 4294967296
     end
     return i32
 end
@@ -105,4 +126,10 @@ function BinaryReader:str(len) -- string
         str = table.concat(chars)
     end
     return str
+end
+
+function BinaryReader:idstring(str)
+    local len = string.len(str)
+    local tmp = self:str(len)
+    assert(str == tmp, "ERROR: " .. tmp .. " != " .. str)
 end

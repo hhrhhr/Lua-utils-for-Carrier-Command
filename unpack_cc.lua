@@ -11,21 +11,16 @@ reader:open(in_file)
 print("[LOG] open " .. in_file)
 
 -- magic
-local idstring = reader:str(4)
-assert(idstring == "FORM", "!!! magic != FORM")
-
+reader:idstring("FORM")
 print("[LOG] filesize: " .. reader:size())
 local arc_size = reader:int32(BIG)
-assert(arc_size + 8 == reader:size(), "!!! data size error")
+assert(arc_size + 8 == reader:size(), "!!! FORM size error")
 print("[LOG] arc_size: " .. arc_size .. ", OK")
 
-idstring = reader:str(4)
-assert(idstring == "PAC1", "!!! magic != PAC1")
+reader:idstring("PAC1")
 
 -- header
-idstring = reader:str(4)
-assert(idstring == "HEAD", "!!! magic != HEAD")
-
+reader:idstring("HEAD")
 local header = {}
 header.size = reader:int32(BIG)
 header.unk1 = reader:int32(BIG)
@@ -38,8 +33,7 @@ header.min = reader:int8()
 header.sec = reader:int8()
 
 -- data
-idstring = reader:str(4)
-assert(idstring == "DATA", "!!! magic != DATA")
+reader:idstring("DATA")
 local data_sz = reader:int32(BIG)
 reader:seek(reader:pos() + data_sz)
 
@@ -103,7 +97,9 @@ local function copy_file(file)
         unz = restore_dds(unz)
     end
 
-    os.execute("if not exist \"" .. file.path .. "\" mkdir \"" .. file.path .. "\"")
+    file.path = out_path .. file.path
+    cmd = string.format("if not exist %s mkdir %s", file.path, file.path)
+    os.execute(cmd)
     local w = assert(io.open(file.path .. file.name, "w+b"))
     w:write(unz)
     w:close()
@@ -122,7 +118,7 @@ local function get_file(fullpath)
         end
     else
         local t = {}
-        t.path = out_path .. fullpath
+        t.path = fullpath
         t.name = name
         t.offset = reader:int32()
         t.zsize = reader:int32()
@@ -140,7 +136,7 @@ for dir = 1, dir_count do
 end
 
 for _, file in pairs(files) do
-    print(file.offset, file.zsize, file.size, file.flag, file.name)
+    print(file.offset, file.zsize, file.size, file.flag, file.path .. file.name)
     copy_file(file)
 end
 
