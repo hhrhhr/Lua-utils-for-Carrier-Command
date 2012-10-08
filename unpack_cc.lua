@@ -23,7 +23,7 @@ reader:idstring("PAC1")
 reader:idstring("HEAD")
 local header = {}
 header.size = reader:int32(BIG)
-header.unk1 = reader:int32(BIG)
+header.unk1 = reader:int32(BIG)     -- equal 256
 header.zero = reader:str(6 * 4)
 header.year = reader:int16()
 header.month = reader:int8()
@@ -32,21 +32,24 @@ header.hour = reader:int8()
 header.min = reader:int8()
 header.sec = reader:int8()
 
+local txt = string.format("(%d) %d-%d-%d %d:%d:%d",
+    header.unk1, header.year, header.month, header.day,
+    header.hour, header.min, header.sec)
+print(txt)
+
 -- data
 reader:idstring("DATA")
 local data_sz = reader:int32(BIG)
 reader:seek(reader:pos() + data_sz)
 
 -- file table
-idstring = reader:str(4)
-assert(idstring == "FILE", "!!! magic != FILE")
+reader:idstring("FILE")
 
 local file_sz = reader:int32(BIG)
 local zero = reader:int16(BIG)
 assert(zero == 0, "!!! zero != 0")
 
 local dir_count = reader:int32()
-print("[LOG] dirs count " .. dir_count)
 
 ---------------------------------------------------------------------
 -- make 1-mip dds
