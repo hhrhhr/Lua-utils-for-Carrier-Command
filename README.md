@@ -16,6 +16,8 @@ usage:
 
 Edit 'unpack_cc_demo.cmd' or 'unpack_cc_retail.cmd', set your path to game, run.
 
+all textures is autoconverted from game format to 1-mip DDSs.
+
 manual unpack:
 --------------
 
