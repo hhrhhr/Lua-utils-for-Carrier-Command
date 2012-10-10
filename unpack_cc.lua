@@ -13,7 +13,7 @@ print("[LOG] open " .. in_file)
 -- magic
 reader:idstring("FORM")
 print("[LOG] filesize: " .. reader:size())
-local arc_size = reader:int32(BIG)
+local arc_size = reader:uint32(BIG)
 assert(arc_size + 8 == reader:size(), "!!! FORM size error")
 print("[LOG] arc_size: " .. arc_size .. ", OK")
 
@@ -22,15 +22,15 @@ reader:idstring("PAC1")
 -- header
 reader:idstring("HEAD")
 local header = {}
-header.size = reader:int32(BIG)
-header.unk1 = reader:int32(BIG)     -- equal 256
+header.size = reader:uint32(BIG)
+header.unk1 = reader:uint32(BIG)     -- equal 256
 header.zero = reader:str(6 * 4)
-header.year = reader:int16()
-header.month = reader:int8()
-header.day = reader:int8()
-header.hour = reader:int8()
-header.min = reader:int8()
-header.sec = reader:int8()
+header.year = reader:uint16()
+header.month = reader:uint8()
+header.day = reader:uint8()
+header.hour = reader:uint8()
+header.min = reader:uint8()
+header.sec = reader:uint8()
 
 local txt = string.format("(%d) %d-%d-%d %d:%d:%d",
     header.unk1, header.year, header.month, header.day,
@@ -39,17 +39,17 @@ print(txt)
 
 -- data
 reader:idstring("DATA")
-local data_sz = reader:int32(BIG)
+local data_sz = reader:uint32(BIG)
 reader:seek(reader:pos() + data_sz)
 
 -- file table
 reader:idstring("FILE")
 
-local file_sz = reader:int32(BIG)
-local zero = reader:int16(BIG)
-assert(zero == 0, "!!! zero != 0")
+local file_sz = reader:uint32(BIG)
 
-local dir_count = reader:int32()
+local zero = reader:uint16(BIG)
+assert(zero == 0, "!!! zero != 0")
+local dir_count = reader:uint32()
 
 ---------------------------------------------------------------------
 -- make 1-mip dds
@@ -101,21 +101,23 @@ local function copy_file(file)
     end
 
     file.path = out_path .. file.path
-    cmd = string.format("if not exist %s mkdir %s", file.path, file.path)
+--    cmd = string.format("if not exist \"%s\" mkdir \"%s\"", file.path, file.path)
+    cmd = string.format("mkdir \"%s\"  >NUL 2>&1", file.path)
     os.execute(cmd)
+
     local w = assert(io.open(file.path .. file.name, "w+b"))
     w:write(unz)
     w:close()
 end
 ---------------------------------------------------------------------
 local function get_file(fullpath)
-    local f_type = reader:int8()
+    local f_type = reader:uint8()
     assert(f_type <= 1, "!!! unknown file type")
-    local name_sz = reader:int8()
+    local name_sz = reader:uint8()
     local name = reader:str(name_sz)
     if f_type < 1 then
         fullpath = fullpath .. name .. "\\"
-        local file_count = reader:int32()
+        local file_count = reader:uint32()
         for f = 1, file_count do
             get_file(fullpath)
         end
@@ -123,13 +125,14 @@ local function get_file(fullpath)
         local t = {}
         t.path = fullpath
         t.name = name
-        t.offset = reader:int32()
-        t.zsize = reader:int32()
-        t.size = reader:int32()
-        t.zero = reader:int32()
+        t.offset = reader:uint32()
+        t.zsize = reader:uint32()
+        t.size = reader:uint32()
+        t.zero = reader:uint32()
         assert(t.zero == 0, "!!! zero != 0")
-        t.flag = reader:int32(BIG)  -- 256 or 262 in big endian
+        t.flag = reader:uint32(BIG)  -- 256 or 262 in big endian
         table.insert(files, t)
+--print(t.offset, t.zsize, t.size, t.flag, t.path .. t.name)
     end
 end
 ---------------------------------------------------------------------

@@ -11,6 +11,9 @@ end
 
 function BinaryReader:close()
     self.f_handle:close()
+    self.f_handle = nil
+    self.f_size = 0
+
 end
 
 function BinaryReader:pos()
@@ -25,13 +28,13 @@ function BinaryReader:seek(pos)
     return self.f_handle:seek("set", pos)
 end
 
-function BinaryReader:int8()  -- byte
+function BinaryReader:uint8()  -- unsigned byte
     local i8 = 0
     i8 = i8 + string.byte(self.f_handle:read(1))
     return i8
 end
 
-function BinaryReader:uint8()  -- unsigned byte
+function BinaryReader:sint8()  -- signed byte
     local i8 = 0
     i8 = self:int8()
     if i8 > 127 then
@@ -40,46 +43,46 @@ function BinaryReader:uint8()  -- unsigned byte
     return i8
 end
 
-function BinaryReader:int16(endian_big)  -- short
+function BinaryReader:uint16(endian_big)  -- unsigned short
     local i16 = 0
     if endian_big then
-        i16 = i16 + self:int8() * 2^8
-        i16 = i16 + self:int8() * 2^0
+        i16 = i16 + self:uint8() * 2^8
+        i16 = i16 + self:uint8() * 2^0
     else
-        i16 = i16 + self:int8() * 2^0
-        i16 = i16 + self:int8() * 2^8
+        i16 = i16 + self:uint8() * 2^0
+        i16 = i16 + self:uint8() * 2^8
     end
     return i16
 end
 
-function BinaryReader:uint16(endian_big)  -- unsigned short
+function BinaryReader:sint16(endian_big)  -- signed short
     local i16 = 0
-    i16 = self:int16(endian_big)
+    i16 = self:uint16(endian_big)
     if i16 > 32767 then
         i16 = i16 - 65536
     end
     return i16
 end
 
-function BinaryReader:int32(endian_big)  -- integer
+function BinaryReader:uint32(endian_big)  -- unsigned integer
     local i32 = 0
     if endian_big then
-        i32 = i32 + self:int8() * 2^24
-        i32 = i32 + self:int8() * 2^16
-        i32 = i32 + self:int8() * 2^8
-        i32 = i32 + self:int8() * 2^0
+        i32 = i32 + self:uint8() * 2^24
+        i32 = i32 + self:uint8() * 2^16
+        i32 = i32 + self:uint8() * 2^8
+        i32 = i32 + self:uint8() * 2^0
     else
-        i32 = i32 + self:int8() * 2^0
-        i32 = i32 + self:int8() * 2^8
-        i32 = i32 + self:int8() * 2^16
-        i32 = i32 + self:int8() * 2^24
+        i32 = i32 + self:uint8() * 2^0
+        i32 = i32 + self:uint8() * 2^8
+        i32 = i32 + self:uint8() * 2^16
+        i32 = i32 + self:uint8() * 2^24
     end
     return i32
 end
 
-function BinaryReader:uint32(endian_big)  -- unsigned integer
+function BinaryReader:sint32(endian_big)  -- signed integer
     local i32 = 0
-    i32 = self:int32(endian_big)
+    i32 = self:uint32(endian_big)
     if i32 > 2147483647 then
         i32 = i32 - 4294967296
     end
@@ -88,12 +91,12 @@ end
 
 function BinaryReader:hex32()  -- hex
     local h32 = ""
-    h32 = string.format("%08x", self:int32())
+    h32 = string.format("%08x", self:uint32())
     return h32
 end
 
 function BinaryReader:float32()  -- float
-    local x = self:int32()
+    local x = self:uint32()
     local mantissa = bit32.extract(x, 0, 23)
     local exp = bit32.extract(x, 23, 8) - 127
     local sign = bit32.extract(x, 31, 1)

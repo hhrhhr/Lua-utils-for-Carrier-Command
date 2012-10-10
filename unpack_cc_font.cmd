@@ -1,6 +1,6 @@
 @echo off
 
-set fntdir=output_retail\gui\fonts
+set fntdir=output_retail\data01\gui\fonts
 
 set files=etelkatextpro12.fnt etelkatextpro16.fnt etelkatextpro22.fnt etelkatextpro28.fnt etelkatextpro48n.fnt system.fnt
 for %%i in (%files%) do (
